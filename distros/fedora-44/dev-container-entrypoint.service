@@ -1,0 +1,12 @@
+[Unit]
+Description=Prepare dev container runtime permissions
+Before=sshd.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/dev-container-entrypoint
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

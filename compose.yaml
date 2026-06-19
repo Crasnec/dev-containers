@@ -1,0 +1,47 @@
+services:
+  dev-fedora:
+    build:
+      context: .
+      dockerfile: distros/fedora-44/Dockerfile
+      args:
+        DEV_USER: ${DEV_USER}
+        DEV_UID: ${DEV_UID}
+        DEV_GID: ${DEV_GID}
+        CODEX_NPM_VERSION: ${CODEX_NPM_VERSION}
+    image: local/dev-fedora:${FEDORA_VERSION}
+    container_name: dev-fedora
+    hostname: dev-fedora
+    network_mode: host
+    privileged: true
+    cgroup: host
+    command: /sbin/init
+    stop_signal: SIGRTMIN+3
+    restart: unless-stopped
+    working_dir: /workspace
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${WORKSPACE_DIR}:/workspace
+      - ${HOST_CODEX_DIR}:/home/${DEV_USER}/.codex
+      - ${HOST_SSH_KEY}:/home/${DEV_USER}/.ssh/id_ed25519:ro
+      - ${HOST_SSH_KEY}.pub:/home/${DEV_USER}/.ssh/id_ed25519.pub:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/authorized_keys:/home/${DEV_USER}/.ssh/authorized_keys:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/host_keys/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/host_keys/ssh_host_ed25519_key.pub:/etc/ssh/ssh_host_ed25519_key.pub:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/host_keys/ssh_host_ecdsa_key:/etc/ssh/ssh_host_ecdsa_key:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/host_keys/ssh_host_ecdsa_key.pub:/etc/ssh/ssh_host_ecdsa_key.pub:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/host_keys/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/host_keys/ssh_host_rsa_key.pub:/etc/ssh/ssh_host_rsa_key.pub:ro
+      - ${DEVCONTAINER_ROOT}/cache/ssh/known_hosts:/home/${DEV_USER}/.ssh/known_hosts
+      - ${DEVCONTAINER_ROOT}/shared/gitconfig:/home/${DEV_USER}/.gitconfig:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/container-password:/opt/dev-secrets/container-password:ro
+      - ${HOST_LLM_DIR}:/host/llm:ro
+      - ${DEVCONTAINER_ROOT}/shared/bin:/opt/dev-bin
+      - ${DEVCONTAINER_ROOT}/cache/npm:/home/${DEV_USER}/.npm
+      - ${DEVCONTAINER_ROOT}/cache/pip:/home/${DEV_USER}/.cache/pip
+      - ${DEVCONTAINER_ROOT}/cache/cargo-registry:/home/${DEV_USER}/.cargo/registry
+      - ${DEVCONTAINER_ROOT}/cache/cargo-git:/home/${DEV_USER}/.cargo/git
+    tmpfs:
+      - /run
+      - /run/lock
+      - /tmp

@@ -1,0 +1,13 @@
+Port 2222
+ListenAddress 0.0.0.0
+ListenAddress ::
+Protocol 2
+PermitRootLogin no
+PasswordAuthentication yes
+KbdInteractiveAuthentication yes
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+UsePAM yes
+X11Forwarding no
+PrintMotd no
+Subsystem sftp /usr/libexec/openssh/sftp-server

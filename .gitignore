@@ -1,0 +1,9 @@
+.env
+
+cache/
+shared/gitconfig
+shared/ssh/
+
+*.log
+*.tmp
+.DS_Store

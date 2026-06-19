@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+  cat <<'EOF'
+Usage:
+  llm 'question or task'
+
+Environment:
+  LLM_HOST=127.0.0.1
+  LLM_PORT=8080
+  LLM_TOKENS=128
+EOF
+  exit 0
+fi
+
+server_url="http://${LLM_HOST:-127.0.0.1}:${LLM_PORT:-8080}"
+prompt="$*"
+
+python3 - "$server_url" "$prompt" <<'PY'
+import json
+import os
+import sys
+import urllib.request
+
+server_url, prompt = sys.argv[1], sys.argv[2]
+payload = {
+    "messages": [
+        {
+            "role": "system",
+            "content": os.environ.get(
+                "LLM_SYSTEM",
+                "Answer briefly but do not omit required flags or options. Interpret Korean command-line requests exactly. For command-line requests, output one correct shell command as plain text only, with no markdown, unless explanation is requested.",
+            ),
+        },
+        {"role": "user", "content": prompt},
+    ],
+    "temperature": float(os.environ.get("LLM_TEMP", "0.2")),
+    "top_p": float(os.environ.get("LLM_TOP_P", "0.9")),
+    "max_tokens": int(os.environ.get("LLM_TOKENS", "128")),
+}
+req = urllib.request.Request(
+    server_url + "/v1/chat/completions",
+    data=json.dumps(payload).encode(),
+    headers={"Content-Type": "application/json"},
+)
+with urllib.request.urlopen(req, timeout=120) as resp:
+    data = json.load(resp)
+text = data["choices"][0]["message"]["content"].strip()
+if text.startswith("```") and text.endswith("```"):
+    lines = text.splitlines()
+    if len(lines) >= 3:
+        text = "\n".join(lines[1:-1]).strip()
+if len(text) >= 2 and text[0] == text[-1] == "`":
+    text = text[1:-1].strip()
+print(text)
+PY
