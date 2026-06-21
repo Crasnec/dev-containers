@@ -11,7 +11,7 @@ $EDITOR .env
 ./bin/dev shell
 ```
 
-The first `dev up` run creates local-only files under `shared/` and `cache/`, including SSH host keys, `authorized_keys`, `known_hosts`, and a generated container SSH password.
+The first `dev up` run creates local-only files under `shared/` and `cache/`, including SSH host keys, `known_hosts`, and a generated container SSH password. It also makes sure the host public key is present in `HOST_AUTHORIZED_KEYS` so host SSH and container SSH accept the same user key.
 
 ## SSH
 

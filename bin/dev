@@ -28,10 +28,11 @@ DEVCONTAINER_ROOT="${DEVCONTAINER_ROOT:-$ROOT}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOST_HOME/workspace}"
 HOST_CODEX_DIR="${HOST_CODEX_DIR:-$HOST_HOME/.codex}"
 HOST_SSH_KEY="${HOST_SSH_KEY:-$HOST_HOME/.ssh/id_ed25519}"
+HOST_AUTHORIZED_KEYS="${HOST_AUTHORIZED_KEYS:-$HOST_HOME/.ssh/authorized_keys}"
 HOST_LLM_DIR="${HOST_LLM_DIR:-$HOST_HOME/llm}"
 
 export DEV_USER DEV_UID DEV_GID FEDORA_VERSION CODEX_NPM_VERSION
-export HOST_HOME DEVCONTAINER_ROOT WORKSPACE_DIR HOST_CODEX_DIR HOST_SSH_KEY HOST_LLM_DIR
+export HOST_HOME DEVCONTAINER_ROOT WORKSPACE_DIR HOST_CODEX_DIR HOST_SSH_KEY HOST_AUTHORIZED_KEYS HOST_LLM_DIR
 
 if [[ -S /var/run/docker.sock && ! -w /var/run/docker.sock && " $(id -nG) " != *" docker "* ]]; then
   if command -v sg >/dev/null 2>&1; then
@@ -67,6 +68,28 @@ image_name() {
   printf 'local/dev-fedora:%s\n' "$FEDORA_VERSION"
 }
 
+ensure_authorized_key() {
+  local auth_dir pub_type pub_body
+
+  auth_dir="$(dirname "$HOST_AUTHORIZED_KEYS")"
+  mkdir -p "$auth_dir"
+  touch "$HOST_AUTHORIZED_KEYS"
+  chmod 700 "$auth_dir"
+  chmod 600 "$HOST_AUTHORIZED_KEYS"
+
+  pub_type="$(awk 'NR == 1 { print $1 }' "$HOST_SSH_KEY.pub")"
+  pub_body="$(awk 'NR == 1 { print $2 }' "$HOST_SSH_KEY.pub")"
+
+  if ! awk -v type="$pub_type" -v body="$pub_body" \
+    '$1 == type && $2 == body { found = 1 } END { exit(found ? 0 : 1) }' \
+    "$HOST_AUTHORIZED_KEYS"; then
+    if [[ -s "$HOST_AUTHORIZED_KEYS" && -n "$(tail -c 1 "$HOST_AUTHORIZED_KEYS")" ]]; then
+      printf '\n' >> "$HOST_AUTHORIZED_KEYS"
+    fi
+    sed -n '1p' "$HOST_SSH_KEY.pub" >> "$HOST_AUTHORIZED_KEYS"
+  fi
+}
+
 preflight() {
   mkdir -p \
     "$WORKSPACE_DIR" \
@@ -85,8 +108,7 @@ preflight() {
     echo "missing $HOST_SSH_KEY.pub" >&2
     exit 1
   fi
-  cp "$HOST_SSH_KEY.pub" "$ROOT/shared/ssh/authorized_keys"
-  chmod 600 "$ROOT/shared/ssh/authorized_keys"
+  ensure_authorized_key
 
   if [[ ! -f "$ROOT/shared/ssh/host_keys/ssh_host_ed25519_key" ]]; then
     ssh-keygen -q -t ed25519 -N '' -f "$ROOT/shared/ssh/host_keys/ssh_host_ed25519_key"
