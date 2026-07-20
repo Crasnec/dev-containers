@@ -8,6 +8,7 @@ install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.ssh"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.cache"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.cache/pip"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.cargo"
+install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.npm"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 755 /workspace
 
 if [[ -S /var/run/docker.sock ]]; then
@@ -20,7 +21,13 @@ if [[ -S /var/run/docker.sock ]]; then
 fi
 
 ssh-keygen -A
-chown -R "$DEV_USER:$DEV_USER" "$DEV_HOME/.cache" "$DEV_HOME/.cargo"
+
+# Bind-mounted caches may contain root-owned files after a previous `sudo npm`.
+# Restore ownership before the user shell starts and remove startup-safe stale temp data.
+chown -R "$DEV_USER:$DEV_USER" "$DEV_HOME/.cache" "$DEV_HOME/.cargo" "$DEV_HOME/.npm"
+rm -rf "$DEV_HOME/.npm/_locks" "$DEV_HOME/.npm/_cacache/tmp"
+install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.npm/_cacache/tmp"
+
 chmod 700 "$DEV_HOME/.ssh"
 find "$DEV_HOME/.ssh" -maxdepth 1 -type f -name 'id_*' -exec chmod 600 {} \; 2>/dev/null || true
 chmod 600 "$DEV_HOME/.ssh/authorized_keys" 2>/dev/null || true
