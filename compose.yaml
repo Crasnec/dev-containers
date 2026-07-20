@@ -8,6 +8,7 @@ services:
         DEV_UID: ${DEV_UID}
         DEV_GID: ${DEV_GID}
         CODEX_NPM_VERSION: ${CODEX_NPM_VERSION}
+        TUNNEL_CLIENT_VERSION: ${TUNNEL_CLIENT_VERSION:-v0.0.9--context-conduit-topaz}
     image: local/dev-fedora:${FEDORA_VERSION}
     container_name: dev-fedora
     hostname: dev-fedora
