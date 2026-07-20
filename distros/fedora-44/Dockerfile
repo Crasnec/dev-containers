@@ -79,8 +79,8 @@ RUN groupadd --gid "$DEV_GID" "$DEV_USER" && \
     useradd --uid "$DEV_UID" --gid "$DEV_GID" --create-home --shell /bin/bash "$DEV_USER" && \
     printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$DEV_USER" >/etc/sudoers.d/90-dev-user && \
     chmod 0440 /etc/sudoers.d/90-dev-user && \
-    mkdir -p "/home/$DEV_USER/.ssh" "/home/$DEV_USER/.cache/pip" "/home/$DEV_USER/.cargo" && \
-    chown -R "$DEV_UID:$DEV_GID" "/home/$DEV_USER" && \
+    mkdir -p "/home/$DEV_USER/.ssh" "/home/$DEV_USER/.cache/pip" "/home/$DEV_USER/.cargo" /opt/go-work && \
+    chown -R "$DEV_UID:$DEV_GID" "/home/$DEV_USER" /opt/go-work && \
     chmod 700 "/home/$DEV_USER/.ssh"
 
 COPY distros/fedora-44/sshd_config /etc/ssh/sshd_config
@@ -91,9 +91,10 @@ RUN chmod 0755 /usr/local/sbin/dev-container-entrypoint && \
     systemctl enable sshd.service dev-container-entrypoint.service && \
     systemctl mask getty@tty1.service docker.service docker.socket
 
-ENV PATH="/opt/dev-bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ENV PATH="/opt/dev-bin:/opt/go-work/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV DEV_USER="${DEV_USER}"
 ENV DEV_HOME="/home/${DEV_USER}"
+ENV GOPATH="/opt/go-work"
 ENV TUNNEL_CLIENT_VERSION="${TUNNEL_CLIENT_VERSION}"
 
 STOPSIGNAL SIGRTMIN+3
