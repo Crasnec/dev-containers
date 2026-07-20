@@ -3,13 +3,19 @@ set -euo pipefail
 
 DEV_USER="${DEV_USER:-dev}"
 DEV_HOME="${DEV_HOME:-/home/$DEV_USER}"
+GOPATH="${GOPATH:-/opt/go-work}"
 
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.ssh"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.cache"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.cache/pip"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.cargo"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.npm"
+install -d -o "$DEV_USER" -g "$DEV_USER" -m 755 "$GOPATH"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 755 /workspace
+
+# Go defaults to ~/go when GOPATH is unset. The image now uses /opt/go-work,
+# so remove the legacy generated workspace from the container user's home.
+rm -rf "$DEV_HOME/go"
 
 if [[ -S /var/run/docker.sock ]]; then
   sock_gid="$(stat -c '%g' /var/run/docker.sock)"
@@ -24,7 +30,7 @@ ssh-keygen -A
 
 # Bind-mounted caches may contain root-owned files after a previous `sudo npm`.
 # Restore ownership before the user shell starts and remove startup-safe stale temp data.
-chown -R "$DEV_USER:$DEV_USER" "$DEV_HOME/.cache" "$DEV_HOME/.cargo" "$DEV_HOME/.npm"
+chown -R "$DEV_USER:$DEV_USER" "$DEV_HOME/.cache" "$DEV_HOME/.cargo" "$DEV_HOME/.npm" "$GOPATH"
 rm -rf "$DEV_HOME/.npm/_locks" "$DEV_HOME/.npm/_cacache/tmp"
 install -d -o "$DEV_USER" -g "$DEV_USER" -m 700 "$DEV_HOME/.npm/_cacache/tmp"
 
