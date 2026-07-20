@@ -26,7 +26,7 @@ find "$DEV_HOME/.ssh" -maxdepth 1 -type f -name 'id_*' -exec chmod 600 {} \; 2>/
 chmod 600 "$DEV_HOME/.ssh/authorized_keys" 2>/dev/null || true
 chmod 644 "$DEV_HOME/.ssh/known_hosts" 2>/dev/null || true
 
-if [[ -s /opt/dev-secrets/container-password ]]; then
-  password="$(< /opt/dev-secrets/container-password)"
-  printf '%s:%s\n' "$DEV_USER" "$password" | chpasswd
+if [[ -s /opt/dev-secrets/container-password-hash ]]; then
+  password_hash="$(< /opt/dev-secrets/container-password-hash)"
+  printf '%s:%s\n' "$DEV_USER" "$password_hash" | chpasswd -e
 fi
