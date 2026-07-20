@@ -34,7 +34,7 @@ services:
       - ${DEVCONTAINER_ROOT}/shared/ssh/host_keys/ssh_host_rsa_key.pub:/etc/ssh/ssh_host_rsa_key.pub:ro
       - ${DEVCONTAINER_ROOT}/cache/ssh/known_hosts:/home/${DEV_USER}/.ssh/known_hosts
       - ${DEVCONTAINER_ROOT}/shared/gitconfig:/home/${DEV_USER}/.gitconfig:ro
-      - ${DEVCONTAINER_ROOT}/shared/ssh/container-password:/opt/dev-secrets/container-password:ro
+      - ${DEVCONTAINER_ROOT}/shared/ssh/container-password-hash:/opt/dev-secrets/container-password-hash:ro
       - ${HOST_LLM_DIR}:/host/llm:ro
       - ${DEVCONTAINER_ROOT}/shared/bin:/opt/dev-bin
       - ${DEVCONTAINER_ROOT}/cache/npm:/home/${DEV_USER}/.npm
