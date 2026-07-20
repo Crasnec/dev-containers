@@ -38,7 +38,7 @@ services:
       - ${DEVCONTAINER_ROOT}/shared/ssh/container-password-hash:/opt/dev-secrets/container-password-hash:ro
       - ${HOST_LLM_DIR}:/host/llm:ro
       - ${DEVCONTAINER_ROOT}/shared/bin:/opt/dev-bin
-      - ${DEVCONTAINER_ROOT}/cache/npm:/home/${DEV_USER}/.npm
+      - npm-cache:/home/${DEV_USER}/.npm
       - ${DEVCONTAINER_ROOT}/cache/pip:/home/${DEV_USER}/.cache/pip
       - ${DEVCONTAINER_ROOT}/cache/cargo-registry:/home/${DEV_USER}/.cargo/registry
       - ${DEVCONTAINER_ROOT}/cache/cargo-git:/home/${DEV_USER}/.cargo/git
@@ -46,3 +46,6 @@ services:
       - /run
       - /run/lock
       - /tmp
+
+volumes:
+  npm-cache:
