@@ -42,6 +42,7 @@ services:
       - ${HOST_LLM_DIR}:/host/llm:ro
       - ${DEVCONTAINER_ROOT}/shared/bin:/opt/dev-bin
       - npm-cache:/home/${DEV_USER}/.npm
+      - npm-global:/home/${DEV_USER}/.local
       - ${DEVCONTAINER_ROOT}/cache/pip:/home/${DEV_USER}/.cache/pip
       - ${DEVCONTAINER_ROOT}/cache/cargo-registry:/home/${DEV_USER}/.cargo/registry
       - ${DEVCONTAINER_ROOT}/cache/cargo-git:/home/${DEV_USER}/.cargo/git
@@ -52,3 +53,4 @@ services:
 
 volumes:
   npm-cache:
+  npm-global:
