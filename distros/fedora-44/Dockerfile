@@ -68,10 +68,6 @@ RUN dnf -y update && \
       systemd-udev && \
     dnf clean all
 
-RUN test -n "$CODEX_NPM_VERSION" && \
-    npm install -g "@openai/codex@$CODEX_NPM_VERSION" && \
-    codex --version
-
 COPY --from=tunnel-client-builder /out/tunnel-client /usr/local/bin/tunnel-client
 RUN tunnel-client --version
 
@@ -89,6 +85,15 @@ RUN groupadd --gid "$DEV_GID" "$DEV_USER" && \
     printf 'prefix=%s\n' "/home/$DEV_USER/.local" > "/home/$DEV_USER/.npmrc" && \
     chown -R "$DEV_UID:$DEV_GID" "/home/$DEV_USER" && \
     chmod 700 "/home/$DEV_USER/.ssh"
+
+# Keep the image-provided Codex and all later self-updates in one user-owned location.
+RUN test -n "$CODEX_NPM_VERSION" && \
+    sudo -u "$DEV_USER" env \
+      HOME="/home/$DEV_USER" \
+      NPM_CONFIG_PREFIX="/home/$DEV_USER/.local" \
+      PATH="/home/$DEV_USER/.local/bin:$PATH" \
+      npm install -g "@openai/codex@$CODEX_NPM_VERSION" && \
+    "/home/$DEV_USER/.local/bin/codex" --version
 
 COPY distros/fedora-44/sshd_config /etc/ssh/sshd_config
 COPY distros/fedora-44/entrypoint.sh /usr/local/sbin/dev-container-entrypoint
