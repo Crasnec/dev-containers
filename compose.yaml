@@ -13,6 +13,9 @@ services:
     container_name: dev-fedora
     hostname: dev-fedora
     network_mode: host
+    dns:
+      - "${DEV_DNS_PRIMARY:-1.1.1.1}"
+      - "${DEV_DNS_SECONDARY:-8.8.8.8}"
     privileged: true
     cgroup: host
     command: /sbin/init
