@@ -79,7 +79,14 @@ RUN groupadd --gid "$DEV_GID" "$DEV_USER" && \
     useradd --uid "$DEV_UID" --gid "$DEV_GID" --create-home --shell /bin/bash "$DEV_USER" && \
     printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$DEV_USER" >/etc/sudoers.d/90-dev-user && \
     chmod 0440 /etc/sudoers.d/90-dev-user && \
-    mkdir -p "/home/$DEV_USER/.ssh" "/home/$DEV_USER/.cache/pip" "/home/$DEV_USER/.cargo" && \
+    mkdir -p \
+      "/home/$DEV_USER/.ssh" \
+      "/home/$DEV_USER/.cache/pip" \
+      "/home/$DEV_USER/.cargo" \
+      "/home/$DEV_USER/.npm" \
+      "/home/$DEV_USER/.local/bin" \
+      "/home/$DEV_USER/.local/lib/node_modules" && \
+    printf 'prefix=%s\n' "/home/$DEV_USER/.local" > "/home/$DEV_USER/.npmrc" && \
     chown -R "$DEV_UID:$DEV_GID" "/home/$DEV_USER" && \
     chmod 700 "/home/$DEV_USER/.ssh"
 
@@ -91,10 +98,11 @@ RUN chmod 0755 /usr/local/sbin/dev-container-entrypoint && \
     systemctl enable sshd.service dev-container-entrypoint.service && \
     systemctl mask getty@tty1.service docker.service docker.socket
 
-ENV PATH="/opt/dev-bin:/home/${DEV_USER}/.cache/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ENV PATH="/home/${DEV_USER}/.local/bin:/opt/dev-bin:/home/${DEV_USER}/.cache/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV DEV_USER="${DEV_USER}"
 ENV DEV_HOME="/home/${DEV_USER}"
 ENV GOPATH="/home/${DEV_USER}/.cache/go"
+ENV NPM_CONFIG_PREFIX="/home/${DEV_USER}/.local"
 ENV TUNNEL_CLIENT_VERSION="${TUNNEL_CLIENT_VERSION}"
 
 STOPSIGNAL SIGRTMIN+3
