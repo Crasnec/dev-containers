@@ -64,6 +64,38 @@ RUN dnf -y update && \
       cargo \
       docker-cli \
       docker-compose \
+      gh \
+      opam \
+      m4 \
+      bubblewrap \
+      patch \
+      rsync \
+      diffutils \
+      gmp-devel \
+      nspr \
+      nss \
+      at-spi2-atk \
+      libXcomposite \
+      libXdamage \
+      libXrandr \
+      mesa-libgbm \
+      alsa-lib \
+      pango \
+      cups-libs \
+      libXfixes \
+      webkit2gtk4.1-devel \
+      libappindicator-gtk3-devel \
+      librsvg2-devel \
+      libxdo-devel \
+      llvm \
+      lld \
+      clang \
+      libreoffice-impress \
+      libreoffice-calc \
+      poppler-utils \
+      tesseract \
+      tesseract-langpack-eng \
+      tesseract-langpack-kor \
       systemd \
       systemd-udev && \
     dnf clean all

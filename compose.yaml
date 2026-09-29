@@ -25,6 +25,7 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
       - /var/run/docker.sock:/var/run/docker.sock
+      - dev-home:/home/${DEV_USER}
       - ${WORKSPACE_DIR}:/workspace
       - ${HOST_CODEX_DIR}:/home/${DEV_USER}/.codex
       - ${HOST_SSH_KEY}:/home/${DEV_USER}/.ssh/id_ed25519:ro
@@ -41,8 +42,6 @@ services:
       - ${DEVCONTAINER_ROOT}/shared/ssh/container-password-hash:/opt/dev-secrets/container-password-hash:ro
       - ${HOST_LLM_DIR}:/host/llm:ro
       - ${DEVCONTAINER_ROOT}/shared/bin:/opt/dev-bin
-      - npm-cache:/home/${DEV_USER}/.npm
-      - npm-global:/home/${DEV_USER}/.local
       - ${DEVCONTAINER_ROOT}/cache/pip:/home/${DEV_USER}/.cache/pip
       - ${DEVCONTAINER_ROOT}/cache/cargo-registry:/home/${DEV_USER}/.cargo/registry
       - ${DEVCONTAINER_ROOT}/cache/cargo-git:/home/${DEV_USER}/.cargo/git
@@ -52,5 +51,6 @@ services:
       - /tmp
 
 volumes:
-  npm-cache:
-  npm-global:
+  dev-home:
+    external: true
+    name: ${DEV_HOME_VOLUME:-dev-fedora-home}

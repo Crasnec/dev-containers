@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEV_USER="${DEV_USER:-dev}"
-DEV_HOME="${DEV_HOME:-/home/$DEV_USER}"
+DEV_USER="${DEV_USER:-}"
+if [[ -z "$DEV_USER" ]] || ! getent passwd "$DEV_USER" >/dev/null; then
+  DEV_USER="$(getent passwd 1000 | cut -d: -f1)"
+fi
+if [[ -z "$DEV_USER" ]]; then
+  echo "unable to resolve the development user" >&2
+  exit 1
+fi
+
+DEV_HOME="${DEV_HOME:-$(getent passwd "$DEV_USER" | cut -d: -f6)}"
 GOPATH="${GOPATH:-$DEV_HOME/.cache/go}"
 NPM_PREFIX="${NPM_CONFIG_PREFIX:-$DEV_HOME/.local}"
 

@@ -13,6 +13,16 @@ $EDITOR .env
 
 The first `dev up` run creates local-only files under `shared/` and `cache/`, including SSH host keys, `known_hosts`, and a generated container SSH password. It also makes sure the host public key is present in `HOST_AUTHORIZED_KEYS` so host SSH and container SSH accept the same user key.
 
+## Persistent state
+
+The complete user home is stored in the external Docker volume `dev-fedora-home`.
+Workspace files and Codex state remain bind-mounted from the host. Because the
+home volume is external, Compose does not remove it during container recreation,
+`down`, or `down --volumes`.
+
+System packages belong in `distros/fedora-44/Dockerfile`; installing packages
+only in a running container is not durable across recreation.
+
 ## SSH
 
 The container listens on port `2222`.

@@ -30,9 +30,10 @@ HOST_CODEX_DIR="${HOST_CODEX_DIR:-$HOST_HOME/.codex}"
 HOST_SSH_KEY="${HOST_SSH_KEY:-$HOST_HOME/.ssh/id_ed25519}"
 HOST_AUTHORIZED_KEYS="${HOST_AUTHORIZED_KEYS:-$HOST_HOME/.ssh/authorized_keys}"
 HOST_LLM_DIR="${HOST_LLM_DIR:-$HOST_HOME/llm}"
+DEV_HOME_VOLUME="${DEV_HOME_VOLUME:-dev-fedora-home}"
 
 export DEV_USER DEV_UID DEV_GID FEDORA_VERSION CODEX_NPM_VERSION
-export HOST_HOME DEVCONTAINER_ROOT WORKSPACE_DIR HOST_CODEX_DIR HOST_SSH_KEY HOST_AUTHORIZED_KEYS HOST_LLM_DIR
+export HOST_HOME DEVCONTAINER_ROOT WORKSPACE_DIR HOST_CODEX_DIR HOST_SSH_KEY HOST_AUTHORIZED_KEYS HOST_LLM_DIR DEV_HOME_VOLUME
 
 if [[ -S /var/run/docker.sock && ! -w /var/run/docker.sock && " $(id -nG) " != *" docker "* ]]; then
   if command -v sg >/dev/null 2>&1; then
@@ -68,6 +69,14 @@ image_name() {
   printf 'local/dev-fedora:%s\n' "$FEDORA_VERSION"
 }
 
+ensure_home_volume() {
+  if ! docker volume inspect "$DEV_HOME_VOLUME" >/dev/null 2>&1; then
+    docker volume create \
+      --label dev.openai.purpose=dev-fedora-home \
+      "$DEV_HOME_VOLUME" >/dev/null
+  fi
+}
+
 ensure_authorized_key() {
   local auth_dir pub_type pub_body
 
@@ -91,6 +100,8 @@ ensure_authorized_key() {
 }
 
 preflight() {
+  ensure_home_volume
+
   mkdir -p \
     "$WORKSPACE_DIR" \
     "$HOST_CODEX_DIR" \
@@ -129,8 +140,14 @@ preflight() {
   chmod 600 "$ROOT/shared/ssh/container-password"
 
   if [[ -f "$HOST_HOME/.ssh/known_hosts" && ! -s "$ROOT/cache/ssh/known_hosts" ]]; then
+    if [[ -d "$ROOT/cache/ssh/known_hosts" ]]; then
+      rmdir "$ROOT/cache/ssh/known_hosts"
+    fi
     cp "$HOST_HOME/.ssh/known_hosts" "$ROOT/cache/ssh/known_hosts"
   else
+    if [[ -d "$ROOT/cache/ssh/known_hosts" ]]; then
+      rmdir "$ROOT/cache/ssh/known_hosts"
+    fi
     touch "$ROOT/cache/ssh/known_hosts"
   fi
   chmod 644 "$ROOT/cache/ssh/known_hosts"
@@ -213,6 +230,7 @@ case "${1:-help}" in
     echo "docker: $(docker version --format '{{.Server.Version}}')"
     echo "compose: $(docker compose version --short)"
     echo "image: $(image_name)"
+    echo "home volume: $DEV_HOME_VOLUME"
     if docker container inspect "$NAME" >/dev/null 2>&1; then
       docker ps -a --filter "name=^/${NAME}$" --format "container: {{.Names}} {{.Status}}"
     else
@@ -241,8 +259,8 @@ Commands:
   recreate   recreate the container without rebuilding
   rebuild    rebuild from scratch and start
   logs       follow compose logs
-  down       remove the container, keep workspace/cache/shared
-  clean      down plus remove compose orphans, keep workspace/cache/shared
+  down       remove the container, keep home/workspace/cache/shared
+  clean      down plus remove compose orphans, keep home/workspace/cache/shared
   ps         show compose status
   status     show docker status
   image      show the base dev image
